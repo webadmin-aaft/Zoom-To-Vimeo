@@ -79,15 +79,7 @@ app.get("/regenerate-token", async (req, res) => {
     // Save the new tokens
     ZOOM_ACCESS_TOKEN = response.data.access_token;
 
-    // console.log(
-    //   "refreshZoomAccessToken()",
-    //   "Access token refreshed:",
-    //   ZOOM_ACCESS_TOKEN,
-    //   "refresh token:",
-    //   response.data.refresh_token,
-    //   "refresh token:",
-    //   process.env.ZOOM_REFRESH_TOKEN
-    // );
+  
     res.redirect(`/batch-download`);
   } catch (error) {
     console.error(
@@ -117,8 +109,7 @@ app.get("/callback_A", async (req, res) => {
     });
 
     ZOOM_ACCESS_TOKEN = tokenRes.data.access_token;
-    console.log("New access token:", ZOOM_ACCESS_TOKEN);
-    console.log("New refresh token:", tokenRes.data);
+   
     res.redirect(`/batch-download`);
   } catch (error) {
     console.error(
@@ -149,11 +140,10 @@ app.get("/callback", async (req, res) => {
       },
     });
 
-    console.log(`code: ${code}, redirect_uri: ${REDIRECT_URI}`);
+   
 
     ZOOM_ACCESS_TOKEN = tokenRes.data.access_token;
-    console.log("New access token:", ZOOM_ACCESS_TOKEN);
-    console.log("New refresh token:", tokenRes.data.refresh_token);
+   
     res.redirect(`/batch-download`);
   } catch (error) {
     console.error(
@@ -187,15 +177,7 @@ async function refreshZoomAccessToken() {
     // Save the new tokens
     ZOOM_ACCESS_TOKEN = response.data.access_token;
 
-    // console.log(
-    //   "refreshZoomAccessToken()",
-    //   "Access token refreshed:",
-    //   ZOOM_ACCESS_TOKEN,
-    //   "refresh token:",
-    //   response.data.refresh_token,
-    //   "refresh token:",
-    //   process.env.ZOOM_REFRESH_TOKEN
-    // );
+  
   } catch (error) {
     console.error(
       "Error refreshing Zoom access token:",
@@ -230,15 +212,10 @@ async function uploadToVimeo(filePath, title) {
 }
 
 async function moveVideoToFolder(parentFolderId, subFolderName, videoUri) {
-  console.log(parentFolderId, subFolderName, videoUri);
+
   try {
     const videoId = videoUri.split("/").pop();
-    console.log(
-      "🎯 Extracted videoId:",
-      videoId,
-      "parentFolderId: ",
-      parentFolderId
-    );
+    
 
     // Step 2: Get subfolders inside parent folder
     const subfoldersRes = await axios.get(
@@ -249,7 +226,6 @@ async function moveVideoToFolder(parentFolderId, subFolderName, videoUri) {
         },
       }
     );
-    // console.log("subfolders response: ", subfoldersRes.data.data);
 
     const subfolder = subfoldersRes.data.data.find(
       (item) =>
@@ -258,7 +234,6 @@ async function moveVideoToFolder(parentFolderId, subFolderName, videoUri) {
         item.folder.name.trim().toLowerCase() ===
           subFolderName.trim().toLowerCase()
     );
-    // console.log("subfolder: ", subfolder);
     if (!subfolder) {
       throw new Error(
         `❌ Subfolder "${subFolderName}" not found inside "${parentFolderId}".`
@@ -266,7 +241,7 @@ async function moveVideoToFolder(parentFolderId, subFolderName, videoUri) {
     }
 
     const subfolderId = subfolder.folder.uri.split("/").pop();
-    console.log("subfolderId: ", subfolderId);
+   
 
     // Step 3: Move video to subfolder
     const uploadResponse = await axios.put(
@@ -278,11 +253,11 @@ async function moveVideoToFolder(parentFolderId, subFolderName, videoUri) {
         },
       }
     );
-    console.log("Upload response: ", uploadResponse.status);
+   
     if (uploadResponse.status !== 204) {
       throw new Error("❌ Failed to move video to subfolder.");
     }
-    console.log("🛠️ Moving video to folder, parentFolderId:", parentFolderId);
+   
 
     console.log(
       `✅ Moved video ${videoId} to subfolder "${subFolderName}" inside "${parentFolderId}"`
@@ -325,10 +300,7 @@ const downloadRecordings = async (
   }
 
   // Iterate over each recording file
-  for (const file of recording_files) {
-    console.log("Recording file type:", file.file_type,"recording type:", file.recording_type);
-    // break;
-    // || file.recording_type === "speaker"
+  for (const file of recording_files) {  
     if (
       file.file_type === "MP4" &&
       file.recording_type === "shared_screen_with_speaker_view"
@@ -364,14 +336,6 @@ const downloadRecordings = async (
               batchNumber,
               videoUrl
             );
-            // ✅ Auto delete file after upload and move
-            fs.unlink(filename, (err) => {
-              if (err) {
-                console.error("❌ Error deleting file:", err);
-              } else {
-                console.log(`🗑️ Successfully deleted local file: ${filename}`);
-              }
-               });
           } catch (uploadError) {
             console.error("❌ Error uploading to Vimeo:", uploadError);
           }
@@ -391,7 +355,6 @@ app.get("/batch-download", async (req, res) => {
       throw new Error("Sheet data is not an array. Check getSheetData output.");
     }
 
-    console.log("📄 Sheet data length:", rows.length);
 
     setInterval(refreshZoomAccessToken, 55 * 60 * 1000);
 
@@ -429,7 +392,6 @@ app.get("/batch-download", async (req, res) => {
             programName,
             videoTitle
           );
-          console.log("✅ Video response:", videoResp, "----------");
           // Optional delay
           await new Promise((resolve) => setTimeout(resolve, 2000));
         } catch (error) {
